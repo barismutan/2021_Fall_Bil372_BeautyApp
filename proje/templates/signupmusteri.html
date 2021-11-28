@@ -24,7 +24,7 @@ font-size: 15px;
 position: absolute;
         top: 3px;
       right: 5px;
-color: #7434db;
+color: #7434db;;
 }
     .nav-item {
     position: absolute;
@@ -238,7 +238,7 @@ color: #7434db;
         </div>
     </nav>
 
-<form class="box" action="/signup/salon" method="post">
+<form class="box" action="/signup/musteri" method="post">
 
 
     {% with messages = get_flashed_messages() %}
@@ -256,9 +256,10 @@ color: #7434db;
 
     <input type="password" name="password" placeholder="Şifre">
 
-    <input type="text" name="semtismi" placeholder="Semt adi">
+    <input type="text" name="musteriismi" placeholder="Adiniz">
 
-    <input type="text" name="gstismi" placeholder="Güzellik Salonu Türü">
+    <input type="text" name="musterisoyismi" placeholder="Soyadiniz">
+
 
     <input type="submit" name="" value="Kayıt Ol">
 

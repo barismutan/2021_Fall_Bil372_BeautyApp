@@ -1,38 +1,264 @@
-{% extends "bas2.html" %}
+<!DOCTYPE html>
 
-{% block content %}
-<div class="column is-4 is-offset-4">
-    <h3 class="title">Login</h3>
-    <div class="box">
-        {% with messages = get_flashed_messages() %}
-{% if messages %}
+<html lang="en" dir="ltr">
+
+<style>
+    body{
+
+  margin: 0;
+
+  padding: 0;
+
+  font-family: sans-serif;
+
+  background: white;
+
+}
+    .navbar{
+padding: 15px;
+background-color: white;
+display: flex;
+justify-content: space-between;
+        font-family: sans-serif;
+font-size: 15px;
+position: absolute;
+        top: 3px;
+      right: 5px;
+color: #7434db;;
+}
+    .nav-item {
+    position: absolute;
+
+      right: 5px;
+        top: 3px;
+    flex: 1;
+    max-width: 50%;
+    display: flex;
+    justify-content: space-evenly;
+    font-size: 15px;
+    }
+    .nav-link {
+    display: inline-block;
+    }
+    a{
+    text-decoration: none;
+    color: #7434db;;
+    }
+
+    @media (max-width: 715px) {
+    .nav-item {
+    flex-direction: column;
+    align-items: center;
+    }
+    .nav-link {
+    margin: 5px 1000px;
+    }
+    }
+
+.box{
+
+  width: 300px;
+
+  padding: 40px;
+
+  position: absolute;
+
+    border: white;
+
+  top: 50%;
+
+  left: 50%;
+
+  transform: translate(-50%,-50%);
+
+  background: #3498db;
+
+  text-align: center;
+
+}
+
+.box h1{
+
+  color: white;
+
+
+
+  font-weight: 500;
+
+}
+
+.box input[type = "text"],.box input[type = "password"]{
+
+
+  display: block;
+
+  margin: 20px auto;
+
+  text-align: center;
+
+  border: white;
+
+  padding: 14px 10px;
+
+  width: 200px;
+
+  outline: none;
+
+  color:#455667;
+
+  border-radius: 24px;
+
+  transition: 0.25s;
+
+}
+
+.box input[type = "text"]:focus,.box input[type = "password"]:focus{
+
+  width: 280px;
+
+  border-color: white;
+    color:#455667;
+
+}
+
+.box input[type = "submit"]{
+
+
+  display: block;
+
+  margin: 20px auto;
+
+  text-align: center;
+
+  border: white;
+
+  padding: 14px 40px;
+
+  outline: none;
+
+
+  color:#455667;
+  border-radius: 24px;
+
+  transition: 0.25s;
+
+  cursor: pointer;
+
+}
+
+.box input[type = "submit"]:hover{
+
+  background: white;
+    color:#455667;
+
+}
+.div1 {
+
+  height: 120px;
+  width: 150px;
+   position: absolute;
+    left: 12%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+}
+
+.div2 {
+  height: 120px;
+  width: 150px;
+   position: absolute;
+    right: 10%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+
+  <head>
+
+
+
+    <meta charset="utf-8">
+
+    <title>َBeauty App</title>
+
+
+  </head>
+
+  <body>
+
+  <div class="div1">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/The_Logo_is_Beauty_App%27s_logo.png" width="200" height="140">
+  </div>
+   <div class="div2">
+       <img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/The_Logo_is_Beauty_App%27s_logo.png" width="200" height="140">
+   </div>
+   <nav class="navbar">
+   {% if messages %}
     <div class="notification is-danger">
         {{ messages[0] }}
     </div>
+    {% endif %}
+
+        <div class="container">
+
+            <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                    <a href="{{ url_for('Index') }}" class="navbar-item">
+                        Ana Sayfa
+                    </a>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="navbar-item">
+                        Profil
+                    </a>
+
+                    {% endif %}
+
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('login') }}" class="navbar-item">
+                        Giriş
+                    </a>
+
+                        <a href="{{ url_for('signup') }}" class="navbar-item">
+                        Güzellik Salonu Kayıt Ol
+                    </a>
+                        </a>
+                        <a href="{{ url_for('signupmusteri') }}" class="navbar-item">
+                        Musteri Kayit Ol
+                    </a>
+                    {% endif %}
+                    {% if current_user.is_authenticated %}
+                    <a href="/logout" class="navbar-item">
+                        Çıkış Yap
+                    </a>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+<form class="box" action="/login" method="post">
+
+
+    {% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="notification is-danger">
+        {{ messages[0] }}. Go to <a href="/">login page</a>.
+    </div>
 {% endif %}
 {% endwith %}
-        <form method="POST" action="/login">
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="text" name="kullaniciadi" placeholder="Kullanici adi" autofocus="">
-                </div>
-            </div>
 
-            <div class="field">
-                <div class="control">
-                    <input class="input is-large" type="password" name="password" placeholder="Your Password">
-                </div>
-            </div>
-            <div class="field">
-                <label class="checkbox">
-                    <input type="checkbox">
-                    Remember me
-                </label>
-            </div>
-            <button class="button is-block is-info is-large is-fullwidth">Login</button>
+        <h1>GİRİŞ</h1>
 
-            <button class="button is-block is-warning is-large is-fullwidth"><a href="/misafirproblem">Misafir problem ekleme</a> </button>
-        </form>
-    </div>
-</div>
-{% endblock %}
+
+  <input type="text" name="kullaniciadi" placeholder="Kullanıcı Adı">
+
+  <input type="password" name="password" placeholder="Şifre">
+
+  <input type="submit" name="" value="Giriş">
+
+</form>
+
+  </body>
+
+</html>

@@ -1,0 +1,95 @@
+{% extends 'layout.html' %}
+{% block body %}
+<div class="row">
+  <div class="col-md-4">
+    {% with messages = get_flashed_messages()  %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+</div>
+  <div class="row">
+  <div class="col-md-8" title="Randevular">
+    <caption>Randevular</caption>
+    <table id = "example" class="table table-striped table-bordered" style="width:100%">
+      <thead>
+        <tr>
+          <td>Randevu_ID</td>
+          <td>Uygunluk Bilgisi</td>
+          <td>Müşteri ID</td>
+          <td>Güzellik Salonu ID</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in randevular %}
+        <tr>
+          <td>{{row.randevuid}}</td>
+          <td>{{row.uygunlukbilgisi}}</td>
+          <td>{{row.musteriid}}</td>
+          <td>{{row.gsid}}</td>
+          <td width="130">
+            <a href="/edit/{{row[0]}}" class="btn btn-secondary btn-sm">Düzenle</a>
+            <a href="/delete/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">Sil</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  </div>
+  <div class="row">
+    <div class="col-md-8" title="Hizmetler">
+    <caption>ilgiliHizmetler</caption>
+    <table class="table table-striped table-bordered" style="width:100%">
+      <thead>
+        <tr>
+          <td>Hizmet İsmi</td>
+          <td>Hizmet Türü</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in hizmetler %}
+        <tr>
+          <td>{{row.hizmetismi}}</td>
+          <td>{{row.hizmetturu}}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="row">
+    <div class="col-md-8" title="Kampanyalar">
+    <caption>Kampanyalar</caption>
+    <table class="table table-striped table-bordered" style="width:100%">
+      <thead>
+        <tr>
+          <td>Kampanya Id</td>
+          <td>Kampanya İsmi</td>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in kampanyalar %}
+        <tr>
+          <td>{{row.kampanyaid}}</td>
+          <td>{{row.kampanyaismi}}</td>
+        <td width="130">
+          <a href="/edit/{{row[0]}}" class="btn btn-secondary btn-sm">Düzenle</a>
+          <a href="/delete/{{row[0]}}" class="btn btn-danger btn-delete btn-sm">Sil</a>
+        </td>
+      </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+{% endblock %}

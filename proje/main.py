@@ -95,8 +95,8 @@ class GuzellikSalonTurleri(db.Model):
     gstid = db.Column(db.Integer, primary_key=True,autoincrement=True)
     gstismi = db.Column(db.String(100), unique=True, nullable=False)
 
-    def __init__(self, gstid,gstismi):
-        self.gstid= gstid
+    def __init__(self,gstismi):
+
         self.gstismi=gstismi
 
 
@@ -130,11 +130,10 @@ class Personeller(db.Model):
 class Kampanyalar(db.Model):
     __tablename__ = 'kampanyalar'
 
-    kampanyaid = db.Column(db.String(100), primary_key=True)
+    kampanyaid = db.Column(db.Integer, primary_key=True,autoincrement=True)
     kampanyaismi = db.Column(db.String(100))
 
     def __init__(self, kampanyaid,kampanyaismi):
-        self.kampanyaid=kampanyaid
         self.kampanyaismi=kampanyaismi
 
 
@@ -311,9 +310,9 @@ def login_post():
 
     login_user(kullanici, remember=remember)
     if kullanici.tur=="salon":
-        return redirect('/salonprofil')
+        return redirect('/salonprofile')
     elif kullanici.tur=="musteri":
-        return redirect('musterprofil')
+        return redirect('/musteriprofile')
     else:
         flash('Bir seyler ters gitti,sonra tekrar deneyiniz')
         return redirect('/')
@@ -331,14 +330,14 @@ def logout():
 def salonprofil():
     ilgiliKampanyalar= Kampanyalar.query \
         .join(SalonKampanyalar,Kampanyalar.kampanyaid==SalonKampanyalar.kampanyaid) \
-        .filter(current_user.gsid==SalonKampanyalar.gsid)
+        .filter_by(current_user.gsid==SalonKampanyalar.gsid)
 
     ilgiliRandevular = Randevular.query \
-        .filter(current_user.gsid==Randevular.gsid)
+        .filter_by(current_user.gsid==Randevular.gsid)
 
     ilgiliHizmetler = Hizmetler.query \
         .join(GSHizmetler,GSHizmetler.hizmetismi==Hizmetler.hizmetismi)\
-        .filter(GSHizmetler.gsid==current_user.gsid)
+        .filter_by(GSHizmetler.gsid==current_user.gsid)
 
     return render_template('salonprofile.html',kampanyalar=ilgiliKampanyalar,randevular=ilgiliRandevular,hizmetler=ilgiliHizmetler)
 
@@ -346,18 +345,17 @@ def salonprofil():
 @login_required
 @app.route('/musteriprofile')
 def musteriprofil():
-    ilgiliRandevular = Randevular.query \
-        .filter(current_user.musteriid==Randevular.musteriid)
+    ilgiliRandevular = Randevular.query.filter_by(musteriid=current_user.musteriid)
 
     gerceklesmisHizmetler= Hizmetler.query \
         .join(MusteriHizmetler,MusteriHizmetler.hizmetismi==Hizmetler.hizmetismi)\
-        .filter(Musteriler,Musteriler.musteriid==current_user.musteriid)\
-        .filter(MusteriHizmetler.gerceklesmis==True)
+        .filter_by(musteriid=current_user.musteriid)\
+        .filter_by(gerceklesmis="True")
 
     gerceklesecekHizmetler= Hizmetler.query \
         .join(MusteriHizmetler,MusteriHizmetler.hizmetismi==Hizmetler.hizmetismi)\
-        .filter(Musteriler,Musteriler.musteriid==current_user.musteriid)\
-        .filter(MusteriHizmetler.gerceklesmis==False)
+        .filter_by(musteriid=current_user.musteriid)\
+        .filter_by(gerceklesmis="False")
 
     return render_template('musteriprofile.html',randevular=ilgiliRandevular,gerceklesmisHizmetler=gerceklesmisHizmetler,gerceklesecekHizmetler=gerceklesecekHizmetler)
 
@@ -365,6 +363,10 @@ def musteriprofil():
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
+
+@app.route('/signupmusteri')
+def signupmusteri():
+    return render_template('signupmusteri.html')
 
 @app.route('/signup/<kayitturu>', methods=['POST'])
 def signup_post(kayitturu):
@@ -387,7 +389,13 @@ def signup_post(kayitturu):
         return redirect('/signup')
 
     if kayitturu=="salon":
-        yenikullanici = Kullanicilar(kullaniciadi, sifre=generate_password_hash(password, method='sha256'))
+        semtid = Semtler.query.filter_by(semtismi=request.form['semtismi'])
+        gstid  = GuzellikSalonTurleri.query.filter_by(gstismi=request.form['gstismi'])
+        yenisalon = GuzellikSalonlari(semtid,gstid)
+        yenikullanici = Kullanicilar(kullaniciadi, sifre=generate_password_hash(password, method='sha256'),tur=kayitturu,gsid=yenisalon.gsid,musteriid=None)
+    else:
+        yenimusteri = Musteriler(request.form['musteriismi'],request.form['musterisoyismi'])
+        yenikullanici = Kullanicilar(kullaniciadi,sifre=generate_password_hash(password, method='sha256'),tur=kayitturu,musteriid=yenimusteri.musteriid,gsid=None)
     db.session.add(yenikullanici)
     db.session.commit()
 
@@ -399,11 +407,11 @@ def signup_post(kayitturu):
 def create(tablename):
     if (tablename == "kampanyalar"):
         if request.method == 'POST':
-            kampanyaid=request.form['kampanyaid']
+
             kampanyaadi=request.form['kampanyaadi']
             gsid=current_user.gsid
-            yenikampanya= Kampanyalar(kampanyaid,kampanyaadi)
-            kampanyasalon=SalonKampanyalar(kampanyaid,gsid)
+            yenikampanya= Kampanyalar(kampanyaadi)
+            kampanyasalon=SalonKampanyalar(yenikampanya.kampanyaid,gsid)
             db.session.add(yenikampanya)
             db.session.commit()
             db.session.add(kampanyasalon)
@@ -416,14 +424,9 @@ def create(tablename):
         if request.method == 'POST':
             randevuid=request.form['randevuid']
             uygunluk_bilgisi=request.form['uygunlukbilgisi']
-            randevuolusturan = request.form['randevuolusturan']
 
-            if randevuolusturan == "salon":
-                musteriid=request.form['musteriid']
-                gsid=current_user.gsid
-            else:
-                musteriid=current_user.musteriid
-                gsid=request.form['gsid']
+            musteriid=current_user.musteriid
+            gsid = GuzellikSalonlari.query.filter_by(gsadi=request.form['gsadi'])
 
             randevu = Randevular(randevuid,uygunluk_bilgisi,musteriid,gsid)
             db.session.add(randevu)
@@ -431,9 +434,35 @@ def create(tablename):
             if current_user.tur == "musteri":
                 return redirect("/musteriprofile")
             else:
-                return redirect("/salonprofile")
+                print("HATA OLDU")
+    elif(tablename=="hizmetler"):
+        hizmetadi = request.form['hizmetadi']
+        hizmetturu= request.form['hizmetturu']
 
+        ht = HizmetTurleri.query.get(hizmetturu)
+        hizmet=Hizmetler.query.get(hizmetadi)
+        hizmetyenieklendi=False
+        if not ht:
+            yenihizmetturu= HizmetTurleri(hizmetturu)
+            db.session.add(yenihizmetturu)
+            db.session.commit()
+        if not hizmet:
+            yenihizmet= Hizmetler(hizmetadi,hizmetturu)
+            db.session.add(yenihizmet)
+            db.session.commit()
+            hizmetyenieklendi=True
 
+        if hizmetyenieklendi:
+            yenigshizmet=GSHizmetler(yenihizmet.hizmetismi,current_user.gsid)
+            db.session.add(yenigshizmet)
+            db.session.commit()
+        else:
+            varolanhizmet = Hizmetler.query.filter_by(hizmetadi=hizmetadi).first()
+            yenigshizmet=GSHizmetler(varolanhizmet.hizmetismi,current_user.gsid)
+            db.session.add(yenigshizmet)
+            db.session.commit()
+
+        return redirect('/musteriprofile')
 
 @app.route('/update/<tablename>/<pk>', methods=['POST'])
 @login_required
