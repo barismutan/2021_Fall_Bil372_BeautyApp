@@ -105,12 +105,15 @@ class GuzellikSalonlari(db.Model):
     __tablename__ = 'guzelliksalonlari'
 
     gsid = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    gsadi= db.Column(db.String(100))
     semtid = db.Column(db.String(100), db.ForeignKey('semtler.semtid'))
     gstid = db.Column(db.Integer,db.ForeignKey('guzelliksalonturleri.gstid'))
 
-    def __init__(self, semtid, gstid):
+    def __init__(self, semtid, gstid,gsadi):
         self.semtid=semtid
         self.gstid=gstid
+        self.gsadi=gsadi
+
 
 class Personeller(db.Model):
     __tablename__ = 'personeller'
@@ -133,14 +136,14 @@ class Kampanyalar(db.Model):
     kampanyaid = db.Column(db.Integer, primary_key=True,autoincrement=True)
     kampanyaismi = db.Column(db.String(100))
 
-    def __init__(self, kampanyaid,kampanyaismi):
+    def __init__(self,kampanyaismi):
         self.kampanyaismi=kampanyaismi
 
 
 class SalonKampanyalar(db.Model):
     __tablename__ = 'salonkampanyalar'
 
-    kampanyaid = db.Column(db.String(100),db.ForeignKey('kampanyalar.kampanyaid'), primary_key=True)
+    kampanyaid = db.Column(db.Integer,db.ForeignKey('kampanyalar.kampanyaid'), primary_key=True)
     gsid = db.Column(db.Integer,db.ForeignKey('guzelliksalonlari.gsid'),primary_key=True)
 
     def __init__(self, kampanyaid,gsid):
@@ -177,14 +180,13 @@ class Anketler(db.Model): #sapma
 class Randevular(db.Model): #sapma
     __tablename__ = 'randevular'
 
-    randevuid = db.Column(db.String(100), primary_key=True)
+    randevuid = db.Column(db.Integer, primary_key=True,autoincrement=True)
     uygunlukbilgisi    = db.Column(db.String(100))
     musteriid = db.Column(db.Integer,db.ForeignKey('musteriler.musteriid'))
     gsid = db.Column(db.Integer,db.ForeignKey('guzelliksalonlari.gsid'))
 
-    def __init__(self,randevuid,uygunlukbilgisi,musteriid,gsid):
-        self.randevuid=randevuid
-        self.uygunlukbilgisi=uygunlukbilgisi
+    def __init__(self,uygunluk_bilgisi,musteriid,gsid):
+        self.uygunlukbilgisi=uygunluk_bilgisi
         self.musteriid=musteriid
         self.gsid=gsid
 
@@ -330,14 +332,14 @@ def logout():
 def salonprofil():
     ilgiliKampanyalar= Kampanyalar.query \
         .join(SalonKampanyalar,Kampanyalar.kampanyaid==SalonKampanyalar.kampanyaid) \
-        .filter_by(current_user.gsid==SalonKampanyalar.gsid)
+        .filter_by(gsid=current_user.gsid)
 
     ilgiliRandevular = Randevular.query \
-        .filter_by(current_user.gsid==Randevular.gsid)
+        .filter_by(gsid=current_user.gsid)
 
     ilgiliHizmetler = Hizmetler.query \
         .join(GSHizmetler,GSHizmetler.hizmetismi==Hizmetler.hizmetismi)\
-        .filter_by(GSHizmetler.gsid==current_user.gsid)
+        .filter_by(gsid=current_user.gsid)
 
     return render_template('salonprofile.html',kampanyalar=ilgiliKampanyalar,randevular=ilgiliRandevular,hizmetler=ilgiliHizmetler)
 
@@ -389,13 +391,22 @@ def signup_post(kayitturu):
         return redirect('/signup')
 
     if kayitturu=="salon":
-        semtid = Semtler.query.filter_by(semtismi=request.form['semtismi'])
-        gstid  = GuzellikSalonTurleri.query.filter_by(gstismi=request.form['gstismi'])
-        yenisalon = GuzellikSalonlari(semtid,gstid)
+        semt = Semtler.query.filter_by(semtismi=request.form['semtismi']).first()
+        gst  = GuzellikSalonTurleri.query.filter_by(gstismi=request.form['gstismi']).first()
+        gsadi  = request.form['gsadi']
+        print("GSADI"+gsadi)
+        yenisalon = GuzellikSalonlari(semt.semtid,gst.gstid,gsadi)
+        db.session.add(yenisalon)
+        db.session.commit()
         yenikullanici = Kullanicilar(kullaniciadi, sifre=generate_password_hash(password, method='sha256'),tur=kayitturu,gsid=yenisalon.gsid,musteriid=None)
+        print(yenisalon)
+
     else:
         yenimusteri = Musteriler(request.form['musteriismi'],request.form['musterisoyismi'])
+        db.session.add(yenimusteri)
+        db.session.commit()
         yenikullanici = Kullanicilar(kullaniciadi,sifre=generate_password_hash(password, method='sha256'),tur=kayitturu,musteriid=yenimusteri.musteriid,gsid=None)
+
     db.session.add(yenikullanici)
     db.session.commit()
 
@@ -411,9 +422,11 @@ def create(tablename):
             kampanyaadi=request.form['kampanyaadi']
             gsid=current_user.gsid
             yenikampanya= Kampanyalar(kampanyaadi)
-            kampanyasalon=SalonKampanyalar(yenikampanya.kampanyaid,gsid)
             db.session.add(yenikampanya)
             db.session.commit()
+
+            kampanyasalon=SalonKampanyalar(yenikampanya.kampanyaid,gsid)
+
             db.session.add(kampanyasalon)
             db.session.commit()
             if current_user.tur == "musteri":
@@ -422,13 +435,13 @@ def create(tablename):
                 return redirect("/salonprofile")
     elif(tablename=="randevular"):
         if request.method == 'POST':
-            randevuid=request.form['randevuid']
-            uygunluk_bilgisi=request.form['uygunlukbilgisi']
+
+            uygunluk_bilgisi="uygundur"
 
             musteriid=current_user.musteriid
-            gsid = GuzellikSalonlari.query.filter_by(gsadi=request.form['gsadi'])
+            gsid = GuzellikSalonlari.query.filter_by(gsadi=request.form['gsadi']).first()
 
-            randevu = Randevular(randevuid,uygunluk_bilgisi,musteriid,gsid)
+            randevu = Randevular(uygunluk_bilgisi=uygunluk_bilgisi,musteriid=musteriid,gsid=gsid.gsid)
             db.session.add(randevu)
             db.session.commit()
             if current_user.tur == "musteri":
@@ -457,18 +470,33 @@ def create(tablename):
             db.session.add(yenigshizmet)
             db.session.commit()
         else:
-            varolanhizmet = Hizmetler.query.filter_by(hizmetadi=hizmetadi).first()
+            varolanhizmet = Hizmetler.query.filter_by(hizmetismi=hizmetadi).first()
             yenigshizmet=GSHizmetler(varolanhizmet.hizmetismi,current_user.gsid)
             db.session.add(yenigshizmet)
             db.session.commit()
 
-        return redirect('/musteriprofile')
+        return redirect('/salonprofile')
+
+
+@app.route('/update/<tablename>/<pk>')
+@login_required
+def updateGet(tablename,pk):
+    if(tablename=="randevular"):
+        r=Randevular.query.get(pk)
+        return render_template('randevuedit.html',pk=pk,randevular=r)
+    elif(tablename=="kampanyalar"):
+        k=Kampanyalar.query.get(pk)
+        return render_template('kampanyaedit.html',pk=pk,kampanyalar=k)
+    elif(tablename=="hizmetler"):
+        h=Hizmetler.query.get(pk)
+        return render_template('hizmetedit.html',pk=pk,hizmetler=h)
+
 
 @app.route('/update/<tablename>/<pk>', methods=['POST'])
 @login_required
 def update(tablename, pk):
     if (tablename == "randevular"):
-        my_data = Iller.query.get(pk)
+        my_data = Randevular.query.get(pk)
         print("DATA====")
         print(my_data)
 
@@ -481,15 +509,65 @@ def update(tablename, pk):
             return redirect("/salonprofile")
 
     elif (tablename == "kampanyalar"):
-        my_data = Ilceler.query.get(pk)
+        my_data = Kampanyalar.query.get(pk)
         print(my_data)
 
-        my_data.kampanyaadi=request.form['kampanyaadi']
+        my_data.kampanyaismi=request.form['kampanyaadi']
         db.session.commit()
         if current_user.tur=="musteri":
             return redirect("/musteriprofile")
         else:
             return redirect("/salonprofile")
+    elif (tablename == "hizmetler"):
+        my_data = Hizmetler.query.get(pk)
+        my_data.hizmetismi=request.form['hizmetismi']
+        db.session.commit()
+        if current_user.tur=="musteri":
+            return redirect("/musteriprofile")
+        else:
+            return redirect("/salonprofile")
+
+
+
+@app.route('/delete/<tablename>/<pk>')
+@login_required
+def delete(tablename,pk):
+    if(tablename=="randevular"):
+        rtodelete=Randevular.query.get(pk)
+        db.session.delete(rtodelete)
+        db.session.commit()
+        if current_user.tur=="salon":
+            return redirect('/salonprofile')
+        else:
+            return redirect('/musteriprofile')
+    elif(tablename=="kampanyalar"):
+        sktodelete= SalonKampanyalar.query.get((pk,current_user.gsid))
+        db.session.delete(sktodelete)
+        db.session.commit()
+
+        ktodelete=Kampanyalar.query.get(pk)
+        db.session.delete(ktodelete)
+        db.session.commit()
+        if current_user.tur=="salon":
+            return redirect('/salonprofile')
+        else:
+            return redirect('/musteriprofile')
+    elif(tablename=="hizmetler"):
+        gstodelete=GSHizmetler.query.get((pk,current_user.gsid))
+        db.session.delete(gstodelete)
+        db.session.commit()
+
+        htodelete=Hizmetler.query.get(pk)
+        db.session.delete(htodelete)
+        db.session.commit()
+        if current_user.tur=="salon":
+            return redirect('/salonprofile')
+        else:
+            return redirect('/musteriprofile')
+
+
+
+
 
 if __name__ == '__main__':
     app.run()

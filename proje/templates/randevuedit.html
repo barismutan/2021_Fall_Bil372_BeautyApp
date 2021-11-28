@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block body %}
+  <div class="row">
+    <div class="col-md-4 offset-md-4">
+      <div class="card card-body">
+        <form action="/update/randevular/{{pk}}" method="POST">
+          <div class="form-group">
+            <input type="text" class="form-control" name="gsadi"  placeholder="Güzellik Salonu Adı">
+          </div>
+            <button type="submit" class="btn btn-primary btn-block">
+              Güncelle
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

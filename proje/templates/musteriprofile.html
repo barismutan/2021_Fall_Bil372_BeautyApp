@@ -1,5 +1,18 @@
 {% extends 'layout.html' %}
 {% block body %}
+<div class="hero-head">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="navbar-collapse collapse">
+         <ul class="nav navbar-nav navbar-right">
+          {% if current_user.is_authenticated %}
+          <li><a href="/logout">
+            Logout
+          </a></li>
+          {% endif %}
+         </ul>
+    </div>
+  </nav>
+</div>
 <div class="row">
   <div class="col-md-4">
     {% with messages = get_flashed_messages()  %}
@@ -24,7 +37,6 @@
       <tr>
         <td>Randevu_ID</td>
         <td>Uygunluk Bilgisi</td>
-        <td>Müşteri ID</td>
         <td>Güzellik Salonu ID</td>
         <td>İşlem</td>
       </tr>
@@ -34,11 +46,10 @@
         <tr>
           <td>{{row.randevuid}}</td>
           <td>{{row.uygunlukbilgisi}}</td>
-          <td>{{row.musteriid}}</td>
           <td>{{row.gsid}}</td>
           <td width="130">
-            <a href="/update/randevular/{{row.randevuid}}" class="btn btn-danger btn-delete btn-sm">güncelle</a>
-            <a href="/delete/{{row.randevuid}}" class="btn btn-danger btn-delete btn-sm">sil</a>
+            <a href="/update/randevular/{{row.randevuid}}" class="btn btn-secondary  btn-sm">güncelle</a>
+            <a href="/delete/randevular/{{row.randevuid}}" class="btn btn-danger btn-delete btn-sm">sil</a>
           </td>
         </tr>
         {% endfor %}
@@ -46,18 +57,10 @@
     </table>
     <div class="col-md-8" title="Randevular" >
       <caption >Randevu Ekleme</caption>
+      <form action="/create/randevular" method="POST">
       <div class="card card-body">
           <div class="form-group">
-            <input type="number" class="form-control" name="randevuid" placeholder="Randevu Id">
-          </div>
-          <div class="form-group">
-            <input type="text" class="form-control" name="uygunlukbilgisi" placeholder="Uygunluk Bilgisi">
-          </div>
-          <div class="form-group">
-            <input type="text" class="form-control" name="randevuolusturan" placeholder="Randevu Olusturan">
-          </div>
-          <div class="form-group">
-            <input type="text" class="form-control" name="gsid" placeholder="Güzellik Salonu Id">
+            <input type="text" class="form-control" name="gsadi" placeholder="Güzellik Salonu Adı">
           </div>
           <button class="btn btn-primary btn-block">
             Kaydet
