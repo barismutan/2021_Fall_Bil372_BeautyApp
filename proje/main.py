@@ -1,18 +1,3 @@
-#iki tip kullanici girisi kuafor ve musteri
-#musterinin randevusuyla kuaforun idsi uyustugunda ilgili yerleri gorecek...
-#url ile profil resmi
-#musteri profil sayfasinda... yeni randevu olustur, randevuyu duzenle ve sil
-# ve mevcut randevularini goruntulesin
-#eski randevular puanlanabilecek
-
-#salon tarafinda
-#kendi kampanyalarini gorebilsin ve duzenleyebilsin
-#kendine olusturulmus randevulari gorebilsin
-#kendine verilmis puanlamalari gorebilsin
-#personellerini gorebilsin ve duzenleyebilsin
-
-
-#footer : iletisim bilgileri
 
 
 from datetime import date
