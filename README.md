@@ -15,3 +15,4 @@ Güzellik Salonları hizmetlerini liste şeklinde görüntüleyebilir ve bu hizm
 -> Kampanya Ekleme, Düzenleme ve Silme
 
 Güzellik Salonları kampanyalarını liste şeklinde görüntüleyebilir ve bu kampanyaları istediği şekilde ekleyebilir, düzenleyebilir ve silebilir.
+
