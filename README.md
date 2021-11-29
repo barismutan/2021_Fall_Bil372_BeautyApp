@@ -1,4 +1,5 @@
 #Beauty App
+
 -> Güzellik Salonu ve Müşteri Kaydı
 Güzellik salonları ve Müşteriler istenen bilgilerin girişi sağlanarak kayıt olabilir.
 -> Randevu Ekleme, Düzenleme ve Silme
